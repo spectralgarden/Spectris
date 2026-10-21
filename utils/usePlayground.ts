@@ -10,7 +10,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
  * Hook to interact with Playground SDK features.
  * Dynamically loads the script and initializes the SDK.
  */
-export function usePlayground() {
+export function usePlayground(enabled = true) {
   const [isReady, setIsReady] = useState(false);
   const sdkRef = useRef<any>(null);
 
@@ -21,7 +21,7 @@ export function usePlayground() {
 
   useEffect(() => {
     // Prevent double initialization in StrictMode
-    if (sdkRef.current) return;
+    if (!enabled || sdkRef.current || window.self === window.top) return;
 
     const loadScript = () => {
       return new Promise<void>((resolve, reject) => {
@@ -58,15 +58,16 @@ export function usePlayground() {
         }
 
         if ((window as any).PlaygroundSDK) {
-          sdkRef.current = new (window as any).PlaygroundSDK();
+          const sdk = new (window as any).PlaygroundSDK();
 
           // Wrap callbacks to fire whatever function is currently in the Ref
-          await sdkRef.current.init(
+          await sdk.init(
             (event: any) => onGameEventRef.current?.(event),
             (presence: any) => onPresenceEventRef.current?.(presence),
             (status: any) => onLobbyStatusRef.current?.(status),
           );
 
+          sdkRef.current = sdk;
           setIsReady(true);
         } else {
           console.error('Playground SDK class not found after script load.');
@@ -77,7 +78,7 @@ export function usePlayground() {
     };
 
     initSDK();
-  }, []);
+  }, [enabled]);
 
   return {
     sdk: sdkRef.current,
@@ -107,7 +108,7 @@ export function usePlaygroundGameLifecycle(
   gameState: BaseGameState,
   sdk?: any,
 ) {
-  const defaultHook = usePlayground();
+  const defaultHook = usePlayground(sdk === undefined);
   const activeSdk = sdk ?? defaultHook.sdk;
   const hasCalledGameOver = useRef(false);
   const hasCalledLevelComplete = useRef(false);
