@@ -137,6 +137,9 @@ export type InputAction =
   | 'confirm'
   | 'cancel'
   | 'hold'
+  | 'skillBomb'
+  | 'skillLaser'
+  | 'skillFreeze'
   | 'tap';
 
 /** Represents the state of the pointer (mouse or touch). */
@@ -177,6 +180,9 @@ const ACTION_KEYS: Record<string, InputAction> = {
   c: 'hold',
   C: 'hold',
   Shift: 'hold',
+  '1': 'skillBomb',
+  '2': 'skillLaser',
+  '3': 'skillFreeze',
 };
 
 /**
@@ -190,6 +196,9 @@ const createEmptyActions = (): Record<InputAction, boolean> => ({
   confirm: false,
   cancel: false,
   hold: false,
+  skillBomb: false,
+  skillLaser: false,
+  skillFreeze: false,
   tap: false,
 });
 

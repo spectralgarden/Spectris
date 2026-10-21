@@ -23,16 +23,6 @@ export function usePlayground() {
     // Prevent double initialization in StrictMode
     if (sdkRef.current) return;
 
-    const isEmbedded =
-      window.parent !== window ||
-      (window as any).__PLAYGROUND_PREVIEW__ === true ||
-      window.location.hostname === 'test.com';
-
-    if (!isEmbedded) {
-      setIsReady(true);
-      return;
-    }
-
     const loadScript = () => {
       return new Promise<void>((resolve, reject) => {
         if ((window as any).PlaygroundSDK) {
