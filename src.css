@@ -7,7 +7,7 @@ body,
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: #080614;
+  background: #f4f4f4;
 }
 
 body {
@@ -17,6 +17,232 @@ body {
 
 button {
   font: inherit;
+}
+
+.sg-desktop {
+  --sg-purple: #8b5cf6;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: #111;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(139, 92, 246, 0.08), transparent 58%),
+    #f4f4f4;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.sg-sitebar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 0 0 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 24px;
+  border-bottom: 2px solid #111;
+  background: #fff;
+  box-shadow: 0 3px 0 rgba(139, 92, 246, 0.45);
+}
+
+.sg-brand,
+.sg-home-link,
+.sg-breadcrumbs a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sg-brand {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.sg-brand img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.sg-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b21a8;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.sg-breadcrumbs strong {
+  color: #111;
+}
+
+.sg-home-link,
+.sg-start-button {
+  border: 2px solid #111;
+  background: #fff;
+  box-shadow: 3px 3px 0 #111;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  transition: color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+
+.sg-home-link {
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.sg-home-link:hover,
+.sg-start-button:hover {
+  color: #fff;
+  background: #111;
+  box-shadow: 3px 3px 0 var(--sg-purple);
+}
+
+.sg-workspace {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  justify-content: center;
+  padding: 18px 24px 20px;
+}
+
+.sg-workspace::before {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(17, 17, 17, 0.14) 0.7px, transparent 0.7px);
+  background-size: 14px 14px;
+  content: "";
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.sg-game-window {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 1440px);
+  min-height: 0;
+  border: 2px solid #111;
+  background: #080614;
+  box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.82), 0 0 0 1px var(--sg-purple);
+}
+
+.sg-window-titlebar {
+  display: flex;
+  flex: 0 0 32px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 7px 3px 11px;
+  border-bottom: 2px solid var(--sg-purple);
+  background: #111;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sg-window-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-window-close {
+  display: grid;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid var(--sg-purple);
+  color: #c4b5fd;
+  text-decoration: none;
+}
+
+.sg-window-close:hover {
+  background: var(--sg-purple);
+  color: #fff;
+}
+
+.sg-window-content {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.sg-window-content > * {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.sg-taskbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 0 0 42px;
+  align-items: center;
+  gap: 18px;
+  padding: 0 16px;
+  border-top: 2px solid #111;
+  background: #fff;
+  box-shadow: 0 -3px 0 rgba(139, 92, 246, 0.4);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sg-start-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sg-start-button img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.sg-taskbar-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #166534;
+}
+
+.sg-status-light {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.7);
+}
+
+.sg-taskbar-project {
+  margin-left: auto;
+  color: #6b21a8;
+}
+
+.sg-crt-overlay {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  background: linear-gradient(transparent 50%, rgba(0, 0, 0, 0.025) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
 }
 
 .spectral-garden-logo {
@@ -58,5 +284,64 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .spectral-garden-logo {
     animation: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .sg-sitebar {
+    flex-basis: 52px;
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  .sg-brand {
+    gap: 6px;
+    font-size: 10px;
+  }
+
+  .sg-brand img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sg-breadcrumbs {
+    display: none;
+  }
+
+  .sg-home-link {
+    padding: 7px;
+    font-size: 9px;
+  }
+
+  .sg-workspace {
+    padding: 12px 10px 14px;
+  }
+
+  .sg-taskbar {
+    flex-basis: 38px;
+    gap: 10px;
+    padding: 0 9px;
+    font-size: 8px;
+  }
+
+  .sg-start-button {
+    gap: 4px;
+    padding: 3px 5px;
+    font-size: 8px;
+  }
+
+  .sg-start-button img {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+@media (max-width: 420px) {
+  .sg-taskbar-status {
+    display: none;
+  }
+
+  .sg-window-titlebar {
+    font-size: 9px;
   }
 }
