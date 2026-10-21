@@ -1,0 +1,86 @@
+{
+  "schema": [
+    {
+      "name": "linesPerRound",
+      "type": "number",
+      "label": "Lines per Round to God Mode",
+      "default": 4,
+      "min": 2,
+      "max": 10,
+      "step": 1
+    },
+    {
+      "name": "dropIntervalStart",
+      "type": "number",
+      "label": "Base Fall Interval (sec)",
+      "default": 0.8,
+      "min": 0.3,
+      "max": 1.5,
+      "step": 0.1
+    },
+    {
+      "name": "softDropMultiplier",
+      "type": "number",
+      "label": "Soft Drop Multiplier",
+      "default": 12,
+      "min": 4,
+      "max": 25,
+      "step": 1
+    },
+    {
+      "name": "godModeDuration",
+      "type": "number",
+      "label": "God Mode Duration (sec)",
+      "default": 10,
+      "min": 5,
+      "max": 20,
+      "step": 1
+    },
+    {
+      "name": "bonusPhaseTargetCount",
+      "type": "number",
+      "label": "Bonus Phase Target Quota",
+      "default": 8,
+      "min": 4,
+      "max": 16,
+      "step": 1
+    },
+    {
+      "name": "breakoutOrbSpeed",
+      "type": "number",
+      "label": "Breakout Orb Speed",
+      "default": 460,
+      "min": 250,
+      "max": 750,
+      "step": 10
+    },
+    {
+      "name": "defaultMusicVolume",
+      "type": "number",
+      "label": "Default Music Volume",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.1
+    },
+    {
+      "name": "defaultSfxVolume",
+      "type": "number",
+      "label": "Default SFX Volume",
+      "default": 0.7,
+      "min": 0,
+      "max": 1,
+      "step": 0.1
+    }
+  ],
+  "values": {
+    "linesPerRound": 4,
+    "dropIntervalStart": 0.8,
+    "softDropMultiplier": 12,
+    "godModeDuration": 10,
+    "bonusPhaseTargetCount": 8,
+    "breakoutOrbSpeed": 460,
+    "defaultMusicVolume": 0.5,
+    "defaultSfxVolume": 0.7
+  }
+}

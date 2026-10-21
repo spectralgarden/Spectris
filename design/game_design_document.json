@@ -1,0 +1,69 @@
+{
+  "title": "Spectris",
+  "hook": "Master dreamy astral puzzle adventures",
+  "game_overview": "Cosmic Pastel claw puzzle with animated tetrominoes, Hold slot, Wild blocks, Breakout rounds every 5 levels, rebalanced slot bonus spins, and quests.",
+  "artstyle": "cyberpunk-neon",
+  "genre": "puzzle",
+  "winning_condition": "Complete round milestones by clearing target lines and beating high scores across all bonus phases.",
+  "losing_condition": "Blocks stack up past the crane delivery threshold during the standard puzzle phase.",
+  "player_mode": "single_player",
+  "supported_orientations": [
+    "landscape"
+  ],
+  "input_methods": [
+    "touch",
+    "mouse",
+    "keyboard",
+    "dpad"
+  ],
+  "score_options": {
+    "score_type": "points",
+    "score_order": "higher_is_better"
+  },
+  "low_end_device_support": true,
+  "mobile_playable": true,
+  "tv_playable": true,
+  "language": [
+    "en"
+  ],
+  "content_descriptors": [],
+  "controls": [
+    {
+      "input": "Left / Right / A / D",
+      "action": "Move piece left / right"
+    },
+    {
+      "input": "Up / W / Z",
+      "action": "Rotate piece clockwise / counter-clockwise"
+    },
+    {
+      "input": "Down / S",
+      "action": "Soft drop piece"
+    },
+    {
+      "input": "Space",
+      "action": "Hard drop piece immediately"
+    },
+    {
+      "input": "C / Shift / Click HOLD",
+      "action": "Hold current piece or swap with held piece"
+    }
+  ],
+  "sections": [
+    {
+      "title": "Design Pillars",
+      "content": "1. Progressive Astral Journey: Each round transports the player to a more lush, detailed, and whimsical cosmic world\u2014from glowing cyber-botanical scrap gardens to floating crystal islands, stardust nebula sanctuaries, and ethereal aurora spires. 2. Kinetic Industrial Magic: Physical crane clamps with glowing stardust cables deliver pieces with dynamic sway, stardust trails, and bioluminescent pulse effects. 3. Multi-Phase Wonder: Seamless transitions between traditional puzzle-clearing, score-scaled God Mode celestial hyper-speed, Reverse-Asteroids comet crushing, and bubble-blaster gem eruptions.",
+      "summary": "Dreamy whimsical aesthetics, progressive visual adventure, and dynamic arcade kinetics."
+    },
+    {
+      "title": "Core Loop",
+      "content": "Stage 1: Main Spectris Grid. Players clear lines delivered by the animated Spectra Crane. As rounds advance, the visual environment escalates with animated aurora waves, floating petal particles, parallax cosmic flora, and shimmering light beams. Line clears charge the Skill Bar. Reaching round line quotas triggers the God Mode Bonus Round (duration scaled to high score) in a radiant celestial warp. Stage 2: Reverse Asteroids Bonus Crusher. Steer descending crystalline blocks to shatter space critters and stardust asteroids. Stage 3: Bubble Blaster Breakout. Aim and launch bouncing prismatic spheres to crack hanging polyomino clusters before journeying to the next whimsical realm.",
+      "summary": "Astral realm progression -> Crane stacking & skill charging -> God Mode overdrive -> Reverse Asteroid Crusher -> Breakout phase -> Next whimsical realm."
+    },
+    {
+      "title": "Visual Hierarchy & Layering",
+      "content": "Round 1 - Spectral Meadow: Cyan bioluminescent vines, floating junk gears sprouting neon blossoms, soft starlight shimmer. Round 2 - Stardust Nebula Grove: Deep magenta and twilight purple nebulae with floating crystal islands and glowing spore particles. Round 3 - Celestial Aurora Spires: Iridescent light ribbons, floating ancient monolithic spires, and swirling comet trails. Round 4+ - Transcendent Astral Garden: Pure cosmic dreamscape with radiant golden stardust waterfalls, kaleidoscope constellations, and pulsing harmonic energy rings.",
+      "summary": "Multilayered parallax astral landscapes with escalating environmental animations and dreamy color palettes."
+    }
+  ]
+}
