@@ -2879,6 +2879,19 @@ export default function App() {
       {gameState.status === 'START' && (
         <MenuOverlay tone="neutral" zIndex={50}>
           <div className="w-full max-w-md bg-slate-900/95 border-2 border-cyan-500/80 rounded-2xl p-6 shadow-2xl flex flex-col items-center backdrop-blur-xl text-center">
+            <a
+              href="https://spectralgarden.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit Spectral Garden (opens in a new tab)"
+              className="spectral-garden-logo mb-3 block rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-purple-300"
+            >
+              <img
+                src="./images/favicon.png"
+                alt="Spectral Garden"
+                className="block h-16 w-16 rounded-2xl"
+              />
+            </a>
             <h1 className="text-3xl md:text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-500 to-yellow-400 tracking-wider">
               SPECTRIS
             </h1>

@@ -18,3 +18,45 @@ body {
 button {
   font: inherit;
 }
+
+.spectral-garden-logo {
+  animation: spectral-garden-float 3.2s ease-in-out infinite,
+    spectral-garden-glow 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px #67e8f9) drop-shadow(0 0 12px #0891b2);
+  transition:
+    filter 200ms ease,
+    transform 200ms ease;
+}
+
+.spectral-garden-logo:hover,
+.spectral-garden-logo:focus-visible {
+  filter: drop-shadow(0 0 10px #a855f7) drop-shadow(0 0 22px #7e22ce);
+}
+
+@keyframes spectral-garden-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes spectral-garden-glow {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spectral-garden-logo {
+    animation: none;
+  }
+}
