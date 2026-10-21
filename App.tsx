@@ -325,6 +325,11 @@ export default function App() {
   const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
   const [isSfxMuted, setIsSfxMuted] = useState(false);
+  const [leaderboardName, setLeaderboardName] = useState('ANONYMOUS');
+  const [leaderboardScores, setLeaderboardScores] = useState<Array<{ name: string; score: number }>>([]);
+  const [leaderboardStatus, setLeaderboardStatus] = useState('');
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
 
   // Skill Energy & Quests State for UI readouts
   const [skillEnergy, setSkillEnergy] = useState(40);
@@ -349,6 +354,61 @@ export default function App() {
 
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
+
+  useEffect(() => {
+    if (gameState.status !== 'GAME_OVER') return;
+
+    let isCurrent = true;
+    setIsLoadingLeaderboard(true);
+    fetch('https://flamefinder.spectralgarden.net/api/games/spectris/leaderboard', { cache: 'no-store' })
+      .then(async (response) => {
+        const result = await response.json() as {
+          scores?: Array<{ name: string; score: number }>;
+          error?: string;
+        };
+        if (!response.ok) throw new Error(result.error || 'Could not load the leaderboard.');
+        if (isCurrent) {
+          setLeaderboardScores(result.scores || []);
+          setLeaderboardStatus('');
+        }
+      })
+      .catch((error: unknown) => {
+        if (isCurrent) {
+          setLeaderboardStatus(error instanceof Error ? error.message : 'Could not load the leaderboard.');
+        }
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoadingLeaderboard(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [gameState.status]);
+
+  const submitSpectrisScore = async () => {
+    const name = leaderboardName.trim().toUpperCase();
+    if (!name || name.length > 12 || isSubmittingScore) return;
+
+    setIsSubmittingScore(true);
+    setLeaderboardStatus('Submitting score for moderator review...');
+    try {
+      const response = await fetch('https://flamefinder.spectralgarden.net/api/games/spectris/scores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, score: gameState.score }),
+      });
+      const result = await response.json() as { pending?: boolean; error?: string };
+      if (!response.ok) throw new Error(result.error || 'Could not save your score.');
+      setLeaderboardStatus(result.pending
+        ? 'Score submitted for moderator review. If approved, it will appear on the leaderboard if it ranks in the top five.'
+        : 'Score submitted.');
+    } catch (error) {
+      setLeaderboardStatus(error instanceof Error ? error.message : 'Could not save your score. Please try again.');
+    } finally {
+      setIsSubmittingScore(false);
+    }
+  };
 
   useEffect(() => {
     (window as any).canHandleBackKey = gameState.status !== 'START';
@@ -3085,14 +3145,64 @@ export default function App() {
 
       {/* GAME OVER OVERLAY */}
       {gameState.status === 'GAME_OVER' && (
-        <Overlay
-          title="GRID OVERLOAD"
-          description={`Final Score: ${gameState.score} • Realm Reached: ${gameState.level}`}
-          actionLabel="TRY AGAIN"
-          onAction={initGame}
-          icon={<RotateCw size={24} />}
-          tone="danger"
-        />
+        <MenuOverlay tone="danger" zIndex={50}>
+          <div className="w-full max-w-md rounded-2xl border-2 border-red-500/70 bg-slate-950/95 p-6 text-center text-white shadow-2xl">
+            <h1 className="mb-3 text-3xl font-black text-red-300 md:text-5xl">GRID OVERLOAD</h1>
+            <p className="mb-5 text-base md:text-lg">
+              Final Score: {gameState.score.toLocaleString()} · Realm Reached: {gameState.level}
+            </p>
+            <div className="mb-5 rounded-xl border border-cyan-500/30 bg-slate-900/80 p-4 text-left">
+              <h2 className="mb-3 text-center text-lg font-black text-cyan-300">SPECTRIS TOP FIVE</h2>
+              {isLoadingLeaderboard ? (
+                <p className="text-center text-sm text-slate-300">Loading leaderboard...</p>
+              ) : leaderboardScores.length > 0 ? (
+                <ol className="space-y-1 text-sm">
+                  {leaderboardScores.map((entry, index) => (
+                    <li key={`${entry.name}-${entry.score}-${index}`} className="flex justify-between gap-3">
+                      <span>{index + 1}. {entry.name}</span>
+                      <span className="font-bold text-yellow-300">{entry.score.toLocaleString()}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="text-center text-sm text-slate-300">
+                  {leaderboardStatus || 'No approved scores yet.'}
+                </p>
+              )}
+            </div>
+            <label className="mb-2 block text-left text-sm font-bold text-cyan-200" htmlFor="spectris-leaderboard-name">
+              Name for the leaderboard
+            </label>
+            <input
+              id="spectris-leaderboard-name"
+              type="text"
+              value={leaderboardName}
+              maxLength={12}
+              autoComplete="nickname"
+              onChange={(event) => setLeaderboardName(event.target.value.toUpperCase())}
+              className="mb-3 min-h-11 w-full rounded-lg border border-cyan-500/50 bg-slate-900 px-3 py-2 text-white outline-none focus:border-cyan-300"
+            />
+            <button
+              type="button"
+              onClick={() => void submitSpectrisScore()}
+              disabled={isSubmittingScore || !leaderboardName.trim()}
+              className="mb-2 min-h-11 w-full rounded-lg bg-cyan-500 px-4 py-2 font-black text-slate-950 transition-colors hover:bg-cyan-400 disabled:cursor-wait disabled:opacity-60"
+            >
+              {isSubmittingScore ? 'SUBMITTING...' : 'SUBMIT SCORE'}
+            </button>
+            <p className="mb-4 min-h-10 text-sm text-cyan-100" role="status" aria-live="polite">
+              {leaderboardStatus}
+            </p>
+            <button
+              type="button"
+              onClick={initGame}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2 font-bold text-white transition-colors hover:bg-slate-600"
+            >
+              <RotateCw size={20} />
+              TRY AGAIN
+            </button>
+          </div>
+        </MenuOverlay>
       )}
 
       {/* VICTORY OVERLAY */}
