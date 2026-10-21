@@ -531,6 +531,7 @@ export default function App() {
   const activeMoveDirRef = useRef<-1 | 0 | 1>(0);
   const touchLeftRef = useRef<boolean>(false);
   const touchRightRef = useRef<boolean>(false);
+  const touchDownRef = useRef<boolean>(false);
 
   // --- Helper Functions for Spectris Grid ---
   const getRandomPieceKey = (): TetrominoKey => {
@@ -1099,6 +1100,7 @@ export default function App() {
     arrTimerRef.current = 0;
     touchLeftRef.current = false;
     touchRightRef.current = false;
+    touchDownRef.current = false;
 
     dropTimerRef.current = 0;
     dropLockoutTimerRef.current = 0.15;
@@ -1491,7 +1493,7 @@ export default function App() {
     const leftDown = input.actions.left || touchLeftRef.current;
     const rightDown = input.actions.right || touchRightRef.current;
     const upDown = input.actions.up;
-    const downDown = input.actions.down;
+    const downDown = input.actions.down || touchDownRef.current;
     const confirmDown = input.actions.confirm;
     const holdDown = input.actions.hold;
     const skillBombDown = input.actions.skillBomb;
@@ -2938,6 +2940,31 @@ export default function App() {
                   className="bg-slate-800 active:bg-cyan-600 text-cyan-300 px-3 py-2 rounded-lg font-bold border border-cyan-500/40 min-w-[44px] min-h-[44px] touch-none select-none text-xs"
                 >
                   ▶
+                </button>
+
+                <button
+                  onPointerDown={(e) => {
+                    try {
+                      e.currentTarget.setPointerCapture?.(e.pointerId);
+                    } catch (_) {}
+                    touchDownRef.current = true;
+                  }}
+                  onPointerUp={(e) => {
+                    try {
+                      e.currentTarget.releasePointerCapture?.(e.pointerId);
+                    } catch (_) {}
+                    touchDownRef.current = false;
+                  }}
+                  onPointerCancel={() => {
+                    touchDownRef.current = false;
+                  }}
+                  onPointerLeave={() => {
+                    touchDownRef.current = false;
+                  }}
+                  aria-label="Soft drop"
+                  className="bg-slate-800 active:bg-cyan-600 text-cyan-300 px-3 py-2 rounded-lg font-bold border border-cyan-500/40 min-w-[44px] min-h-[44px] touch-none select-none text-xs"
+                >
+                  ▼ SOFT
                 </button>
 
                 <button
