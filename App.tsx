@@ -271,11 +271,7 @@ const GRID_ROWS = 20;
 const PROGRESSION_BACKGROUND_KEYS = [
   'spectral_garden_bg',
   'astral_nebula_grove_bg',
-  'background3',
-  'background5',
-  'background7',
-  'bg8',
-  'background9',
+  'celestial_aurora_spires_bg',
   'reverse_asteroids_bg',
 ] as const;
 
@@ -297,12 +293,8 @@ export default function App() {
   const ASSETS_MANIFEST: Record<string, string> = {
     spectral_garden_bg: 'images/spectral_garden_bg.png',
     astral_nebula_grove_bg: 'images/astral_nebula_grove_bg.png',
+    celestial_aurora_spires_bg: 'images/celestial_aurora_spires_bg.png',
     reverse_asteroids_bg: 'images/reverse_asteroids_bg.png',
-    background3: 'images/background3.png',
-    background5: 'images/background5.png',
-    background7: 'images/background7.png',
-    bg8: 'images/bg8.png',
-    background9: 'images/background9.png',
     breakout_stage_bg: 'images/breakout_stage_bg.png',
     god_mode_bg: 'images/god_mode_bg.png',
     crane_claw: 'images/crane_gantry_claw.png',
@@ -467,6 +459,9 @@ export default function App() {
   const downEdgeRef = useRef(false);
   const spaceEdgeRef = useRef(false);
   const holdEdgeRef = useRef(false);
+  const skillBombEdgeRef = useRef(false);
+  const skillLaserEdgeRef = useRef(false);
+  const skillFreezeEdgeRef = useRef(false);
 
   // Delayed Auto Shift (DAS) & Auto-Repeat Rate (ARR) timers
   const dasTimerRef = useRef<number>(0);
@@ -1435,6 +1430,24 @@ export default function App() {
     const downDown = input.actions.down;
     const confirmDown = input.actions.confirm;
     const holdDown = input.actions.hold;
+    const skillBombDown = input.actions.skillBomb;
+    const skillLaserDown = input.actions.skillLaser;
+    const skillFreezeDown = input.actions.skillFreeze;
+
+    if (skillBombDown && !skillBombEdgeRef.current && phase === 'GRID') {
+      triggerSkillBomb();
+    }
+    skillBombEdgeRef.current = skillBombDown;
+
+    if (skillLaserDown && !skillLaserEdgeRef.current && phase === 'GRID') {
+      triggerSkillLaser();
+    }
+    skillLaserEdgeRef.current = skillLaserDown;
+
+    if (skillFreezeDown && !skillFreezeEdgeRef.current && phase === 'GRID') {
+      triggerSkillFreeze();
+    }
+    skillFreezeEdgeRef.current = skillFreezeDown;
 
     // Hold Piece Trigger (C / Shift)
     if (holdDown && !holdEdgeRef.current) {
@@ -2597,7 +2610,7 @@ export default function App() {
     gameState.status === 'PLAYING' && !isGameMenuOpen && !isMusicMuted;
 
   return (
-    <div className="fixed inset-0 overflow-hidden touch-none flex flex-col items-center justify-center bg-slate-950 text-white select-none font-sans">
+    <div className="relative w-full h-full min-h-0 overflow-hidden touch-none flex flex-col items-center justify-center bg-slate-950 text-white select-none font-sans">
       {!assetsReady && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 text-cyan-400 font-mono">
           <div className="text-2xl font-bold animate-pulse">
