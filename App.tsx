@@ -329,6 +329,7 @@ export default function App() {
   const [leaderboardScores, setLeaderboardScores] = useState<Array<{ name: string; score: number }>>([]);
   const [leaderboardStatus, setLeaderboardStatus] = useState('');
   const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+  const [hasSubmittedScore, setHasSubmittedScore] = useState(false);
   const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
 
   // Skill Energy & Quests State for UI readouts
@@ -400,6 +401,7 @@ export default function App() {
       });
       const result = await response.json() as { pending?: boolean; error?: string };
       if (!response.ok) throw new Error(result.error || 'Could not save your score.');
+      setHasSubmittedScore(true);
       setLeaderboardStatus(result.pending
         ? 'Score submitted for moderator review. If approved, it will appear on the leaderboard if it ranks in the top five.'
         : 'Score submitted.');
@@ -1113,6 +1115,8 @@ export default function App() {
     roundLinesTargetRef.current = getConfig('linesPerRound') as number;
     skillEnergyRef.current = 50;
     setSkillEnergy(50);
+    setHasSubmittedScore(false);
+    setLeaderboardStatus('');
 
     particlesRef.current = [];
     floatingTextsRef.current = [];
@@ -3185,10 +3189,10 @@ export default function App() {
             <button
               type="button"
               onClick={() => void submitSpectrisScore()}
-              disabled={isSubmittingScore || !leaderboardName.trim()}
+              disabled={isSubmittingScore || hasSubmittedScore || !leaderboardName.trim()}
               className="mb-2 min-h-11 w-full rounded-lg bg-cyan-500 px-4 py-2 font-black text-slate-950 transition-colors hover:bg-cyan-400 disabled:cursor-wait disabled:opacity-60"
             >
-              {isSubmittingScore ? 'SUBMITTING...' : 'SUBMIT SCORE'}
+              {isSubmittingScore ? 'SUBMITTING...' : hasSubmittedScore ? 'SCORE SUBMITTED' : 'SUBMIT SCORE'}
             </button>
             <p className="mb-4 min-h-10 text-sm text-cyan-100" role="status" aria-live="polite">
               {leaderboardStatus}
