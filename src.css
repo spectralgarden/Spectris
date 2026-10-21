@@ -34,6 +34,105 @@ button {
   font-family: "Courier New", Courier, monospace;
 }
 
+.sg-game-app {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.sg-menu-card {
+  border: 1px solid rgba(196, 181, 253, 0.8);
+  border-radius: 3px;
+  background: rgba(20, 18, 34, 0.97);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.58), inset 0 0 0 1px rgba(196, 181, 253, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.sg-menu-card-start {
+  border-top-width: 3px;
+}
+
+.sg-menu-title {
+  background: none;
+  color: #eee8ff;
+  letter-spacing: 0.14em;
+  -webkit-text-fill-color: currentColor;
+}
+
+.sg-menu-subtitle {
+  color: #c4b5fd;
+  letter-spacing: 0.12em;
+}
+
+.sg-menu-feature-list {
+  border-color: rgba(196, 181, 253, 0.25);
+  border-radius: 2px;
+  background: rgba(9, 8, 17, 0.62);
+  line-height: 1.65;
+}
+
+.sg-menu-feature-title {
+  color: #c4b5fd;
+  letter-spacing: 0.12em;
+}
+
+.sg-menu-card .text-cyan-300,
+.sg-menu-card .text-cyan-400,
+.sg-menu-card .text-yellow-300,
+.sg-menu-card .text-yellow-400,
+.sg-menu-card .text-pink-300,
+.sg-menu-card .text-emerald-300 {
+  color: #c4b5fd;
+}
+
+.sg-menu-primary,
+.sg-menu-secondary {
+  border-radius: 2px;
+  box-shadow: none;
+  font-family: "Courier New", Courier, monospace;
+  letter-spacing: 0.06em;
+  transform: none;
+}
+
+.sg-menu-primary {
+  border: 1px solid #c4b5fd;
+  background: #c4b5fd;
+  color: #171322;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.sg-menu-primary:hover {
+  border-color: #e9d5ff;
+  background: #e9d5ff;
+  color: #171322;
+  transform: none;
+}
+
+.sg-menu-secondary {
+  border: 1px solid rgba(196, 181, 253, 0.55);
+  background: #211d30;
+  color: #e9e2ff;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.sg-menu-secondary:hover {
+  border-color: #c4b5fd;
+  background: #312a46;
+}
+
+.sg-menu-exit {
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+}
+
+.sg-menu-exit:hover {
+  border-color: #f87171;
+  background: #3a202b;
+}
+
+.sg-game-app .spectral-garden-logo {
+  animation: none;
+  filter: drop-shadow(0 0 8px rgba(196, 181, 253, 0.35));
+}
+
 .sg-sitebar {
   position: relative;
   z-index: 2;

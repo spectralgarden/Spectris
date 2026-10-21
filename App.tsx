@@ -2610,7 +2610,7 @@ export default function App() {
     gameState.status === 'PLAYING' && !isGameMenuOpen && !isMusicMuted;
 
   return (
-    <div className="relative w-full h-full min-h-0 overflow-hidden touch-none flex flex-col items-center justify-center bg-slate-950 text-white select-none font-sans">
+    <div className="sg-game-app relative w-full h-full min-h-0 overflow-hidden touch-none flex flex-col items-center justify-center bg-slate-950 text-white select-none font-sans">
       {!assetsReady && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 text-cyan-400 font-mono">
           <div className="text-2xl font-bold animate-pulse">
@@ -2891,7 +2891,7 @@ export default function App() {
       {/* START SCREEN OVERLAY */}
       {gameState.status === 'START' && (
         <MenuOverlay tone="neutral" zIndex={50}>
-          <div className="w-full max-w-md bg-slate-900/95 border-2 border-cyan-500/80 rounded-2xl p-6 shadow-2xl flex flex-col items-center backdrop-blur-xl text-center">
+          <div className="sg-menu-card sg-menu-card-start w-full max-w-md bg-slate-900/95 border-2 border-cyan-500/80 rounded-2xl p-6 shadow-2xl flex flex-col items-center backdrop-blur-xl text-center">
             <a
               href="https://spectralgarden.net/"
               target="_blank"
@@ -2905,26 +2905,26 @@ export default function App() {
                 className="block h-16 w-16 rounded-2xl"
               />
             </a>
-            <h1 className="text-3xl md:text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-500 to-yellow-400 tracking-wider">
+            <h1 className="sg-menu-title text-3xl md:text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-500 to-yellow-400 tracking-wider">
               SPECTRIS
             </h1>
-            <h2 className="text-xs md:text-sm font-mono text-cyan-300 mb-4 tracking-widest">
+            <h2 className="sg-menu-subtitle text-xs md:text-sm font-mono text-cyan-300 mb-4 tracking-widest">
               ASTRAL ODYSSEY & SLOT EXPEDITION
             </h2>
 
-            <div className="bg-cyan-950/40 border border-cyan-500/30 rounded-xl p-3 mb-5 text-left text-xs text-slate-300 space-y-1.5">
-              <div className="text-yellow-400 font-bold flex items-center gap-1.5">
-                <Star size={14} /> NEW: HOLD / SWAP & RAINBOW WILD PIECES!
+            <div className="sg-menu-feature-list bg-cyan-950/40 border border-cyan-500/30 rounded-xl p-3 mb-5 text-left text-xs text-slate-300 space-y-1.5">
+              <div className="sg-menu-feature-title text-yellow-400 font-bold">
+                NEW FEATURES
               </div>
-              <div>• <b>Press C / Shift / Click HOLD:</b> Store and swap pieces anytime.</div>
-              <div>• <b>★ Rainbow Wild Pieces:</b> Universally expand & fill all row gaps upon landing!</div>
-              <div>• <b>🔮 Breakout & 🎰 Slots:</b> Unlocks every 5 rounds as a grand milestone challenge!</div>
+              <div><b>Hold and swap:</b> Save a piece for a later turn.</div>
+              <div><b>Wild pieces:</b> Fill gaps across rows when they land.</div>
+              <div><b>Bonus stages:</b> Breakout and slots unlock every five rounds.</div>
             </div>
 
             <button
               onClick={initGame}
               autoFocus
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black px-6 py-4 rounded-xl text-lg md:text-xl shadow-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2 mb-4 min-h-[48px]"
+              className="sg-menu-primary w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black px-6 py-4 rounded-xl text-lg md:text-xl shadow-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2 mb-4 min-h-[48px]"
             >
               <Play size={24} />
               LAUNCH ODYSSEY
@@ -2932,7 +2932,7 @@ export default function App() {
 
             <button
               onClick={() => setIsHowToPlayOpen(true)}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold px-4 py-3 rounded-xl text-sm border border-cyan-500/30 transition-all flex items-center justify-center gap-2 min-h-[48px]"
+              className="sg-menu-secondary w-full bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold px-4 py-3 rounded-xl text-sm border border-cyan-500/30 transition-all flex items-center justify-center gap-2 min-h-[48px]"
             >
               <HelpCircle size={18} />
               HOW TO PLAY & CONTROLS
@@ -2944,8 +2944,8 @@ export default function App() {
       {/* GAME MENU OVERLAY */}
       {isGameMenuOpen && (
         <MenuOverlay tone="neutral" zIndex={60}>
-          <div className="w-full max-w-md bg-slate-900 border-2 border-cyan-500/80 rounded-2xl p-6 shadow-2xl flex flex-col items-center backdrop-blur-xl text-center">
-            <h2 className="text-2xl md:text-3xl font-black mb-6 text-cyan-400 tracking-wider">
+          <div className="sg-menu-card w-full max-w-md bg-slate-900 border-2 border-cyan-500/80 rounded-2xl p-6 shadow-2xl flex flex-col items-center backdrop-blur-xl text-center">
+            <h2 className="sg-menu-title text-2xl md:text-3xl font-black mb-6 text-cyan-400 tracking-wider">
               GAME MENU
             </h2>
 
@@ -2953,7 +2953,7 @@ export default function App() {
             <button
               onClick={() => setIsGameMenuOpen(false)}
               autoFocus
-              className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl mb-3 text-base flex items-center justify-center gap-2 transition-all min-h-[48px]"
+              className="sg-menu-primary w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl mb-3 text-base flex items-center justify-center gap-2 transition-all min-h-[48px]"
             >
               <Play size={20} />
               RESUME
@@ -2966,7 +2966,7 @@ export default function App() {
                   const muted = gameAudio.toggleMute();
                   setIsSfxMuted(muted);
                 }}
-                className="bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 min-h-[48px]"
+                className="sg-menu-secondary bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 min-h-[48px]"
               >
                 {isSfxMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                 SFX: {isSfxMuted ? 'OFF' : 'ON'}
@@ -2974,7 +2974,7 @@ export default function App() {
 
               <button
                 onClick={() => setIsMusicMuted((prev) => !prev)}
-                className="bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 min-h-[48px]"
+                className="sg-menu-secondary bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 min-h-[48px]"
               >
                 {isMusicMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                 MUSIC: {isMusicMuted ? 'OFF' : 'ON'}
@@ -2984,7 +2984,7 @@ export default function App() {
             {/* Restart Level */}
             <button
               onClick={initGame}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-yellow-500/30 font-bold py-3 rounded-xl mb-3 text-sm flex items-center justify-center gap-2 min-h-[48px]"
+              className="sg-menu-secondary w-full bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-yellow-500/30 font-bold py-3 rounded-xl mb-3 text-sm flex items-center justify-center gap-2 min-h-[48px]"
             >
               <RotateCw size={18} />
               RESTART ODYSSEY
@@ -2993,7 +2993,7 @@ export default function App() {
             {/* How to play */}
             <button
               onClick={() => setIsHowToPlayOpen(true)}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 font-bold py-3 rounded-xl mb-3 text-sm flex items-center justify-center gap-2 min-h-[48px]"
+              className="sg-menu-secondary w-full bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 font-bold py-3 rounded-xl mb-3 text-sm flex items-center justify-center gap-2 min-h-[48px]"
             >
               <HelpCircle size={18} />
               HOW TO PLAY
@@ -3005,7 +3005,7 @@ export default function App() {
                 setIsGameMenuOpen(false);
                 setGameState((prev) => ({...prev, status: 'START'}));
               }}
-              className="w-full bg-red-950 hover:bg-red-900 text-red-300 border border-red-500/30 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 min-h-[48px]"
+              className="sg-menu-secondary sg-menu-exit w-full bg-red-950 hover:bg-red-900 text-red-300 border border-red-500/30 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 min-h-[48px]"
             >
               <Home size={18} />
               QUIT TO MAIN MENU
@@ -3017,8 +3017,8 @@ export default function App() {
       {/* HOW TO PLAY OVERLAY */}
       {isHowToPlayOpen && (
         <MenuOverlay tone="neutral" zIndex={70}>
-          <div className="w-full max-w-lg bg-slate-900 border-2 border-cyan-500 rounded-2xl p-6 shadow-2xl flex flex-col items-center backdrop-blur-xl text-left">
-            <h2 className="text-2xl font-black mb-4 text-cyan-400 text-center tracking-wider">
+          <div className="sg-menu-card w-full max-w-lg bg-slate-900 border-2 border-cyan-500 rounded-2xl p-6 shadow-2xl flex flex-col items-center backdrop-blur-xl text-left">
+            <h2 className="sg-menu-title text-2xl font-black mb-4 text-cyan-400 text-center tracking-wider">
               HOW TO PLAY SPECTRIS
             </h2>
 
