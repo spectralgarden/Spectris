@@ -362,6 +362,7 @@ export default function App() {
   const [slotSpinsRemaining, setSlotSpinsRemaining] = useState(1);
   const [slotTotalWon, setSlotTotalWon] = useState(0);
   const [isSlotSpinning, setIsSlotSpinning] = useState(false);
+  const [isAutoSpinEnabled, setIsAutoSpinEnabled] = useState(false);
   const [slotLastWinMessage, setSlotLastWinMessage] = useState<string | null>(null);
   const [slotCompleted, setSlotCompleted] = useState(false);
 
@@ -860,6 +861,7 @@ export default function App() {
     setSlotSpinsRemaining(totalSpins);
     setSlotTotalWon(0);
     setIsSlotSpinning(false);
+    setIsAutoSpinEnabled(false);
     setSlotLastWinMessage(null);
     setSlotCompleted(false);
 
@@ -896,6 +898,18 @@ export default function App() {
 
     slotSpinDurationRef.current = 2.4;
   };
+
+  useEffect(() => {
+    if (!isAutoSpinEnabled) return;
+    if (gameState.status !== 'PLAYING' || gameState.phase !== 'SLOT_MACHINE' || slotSpinsRemaining <= 0) {
+      setIsAutoSpinEnabled(false);
+      return;
+    }
+    if (isSlotSpinning) return;
+
+    const timeout = window.setTimeout(triggerSlotSpin, 500);
+    return () => window.clearTimeout(timeout);
+  }, [gameState.status, gameState.phase, isAutoSpinEnabled, isSlotSpinning, slotSpinsRemaining]);
 
   const evaluateSlotOutcome = () => {
     const s1 = SLOT_SYMBOLS[slotReelsRef.current[0].currentIndex];
@@ -2971,18 +2985,31 @@ export default function App() {
         <div className="w-full bg-slate-900/95 border-t border-cyan-500/30 py-2 px-3 flex flex-wrap items-center justify-around gap-2 z-20 backdrop-blur-md shrink-0">
           {/* SLOT MACHINE ACTION BUTTONS */}
           {gameState.phase === 'SLOT_MACHINE' ? (
-            <div className="flex items-center gap-3 w-full max-w-lg justify-center">
+            <div className="flex flex-wrap items-center gap-3 w-full max-w-lg justify-center">
               {slotSpinsRemaining > 0 ? (
-                <button
-                  onClick={triggerSlotSpin}
-                  disabled={isSlotSpinning}
-                  className={`w-full max-w-xs bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-black px-6 py-3 rounded-xl text-lg shadow-lg transition-all min-h-[48px] flex items-center justify-center gap-2 ${
-                    isSlotSpinning ? 'opacity-60 cursor-not-allowed' : 'animate-pulse'
-                  }`}
-                >
-                  <Coins size={22} />
-                  SPIN REELS ({slotSpinsRemaining} LEFT)
-                </button>
+                <>
+                  <button
+                    onClick={triggerSlotSpin}
+                    disabled={isSlotSpinning}
+                    className={`w-full sm:flex-1 sm:min-w-0 max-w-xs bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-black px-6 py-3 rounded-xl text-lg shadow-lg transition-all min-h-[48px] flex items-center justify-center gap-2 ${
+                      isSlotSpinning ? 'opacity-60 cursor-not-allowed' : 'animate-pulse'
+                    }`}
+                  >
+                    <Coins size={22} />
+                    SPIN REELS ({slotSpinsRemaining} LEFT)
+                  </button>
+                  <button
+                    onClick={() => setIsAutoSpinEnabled((enabled) => !enabled)}
+                    aria-pressed={isAutoSpinEnabled}
+                    className={`w-full sm:w-auto font-black px-5 py-3 rounded-xl text-base shadow-lg transition-all min-h-[48px] border ${
+                      isAutoSpinEnabled
+                        ? 'bg-cyan-500 text-slate-950 border-cyan-300'
+                        : 'bg-slate-800 text-cyan-200 border-cyan-500/40 hover:bg-slate-700'
+                    }`}
+                  >
+                    AUTO SPIN: {isAutoSpinEnabled ? 'ON' : 'OFF'}
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={() => {
