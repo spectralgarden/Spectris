@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title description">
+  <title id="title">Spectris game preview coming soon</title>
+  <desc id="description">A temporary cosmic placeholder for the Spectris: Astral Odyssey game preview.</desc>
+  <defs>
+    <radialGradient id="space">
+      <stop offset="0" stop-color="#32215f"/>
+      <stop offset="1" stop-color="#080614"/>
+    </radialGradient>
+    <linearGradient id="frame" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#ec75ff"/>
+      <stop offset="1" stop-color="#57eaff"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#space)"/>
+  <g fill="#d9c8ff" opacity=".8">
+    <circle cx="92" cy="94" r="2"/><circle cx="220" cy="201" r="2"/>
+    <circle cx="812" cy="103" r="2"/><circle cx="729" cy="381" r="2"/>
+    <circle cx="144" cy="427" r="2"/><circle cx="496" cy="81" r="2"/>
+    <circle cx="878" cy="293" r="2"/><circle cx="384" cy="438" r="2"/>
+  </g>
+  <rect x="18" y="18" width="924" height="504" rx="16" fill="none" stroke="url(#frame)" stroke-width="4"/>
+  <text x="480" y="238" fill="#8cefff" font-family="monospace" font-size="24" letter-spacing="8" text-anchor="middle">SPECTRIS</text>
+  <text x="480" y="292" fill="#ffffff" font-family="monospace" font-size="38" font-weight="700" text-anchor="middle">PREVIEW COMING SOON</text>
+  <text x="480" y="337" fill="#d6c8ff" font-family="monospace" font-size="18" text-anchor="middle">ASTRAL ODYSSEY</text>
+</svg>

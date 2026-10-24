@@ -187,7 +187,7 @@ const PASTEL_COLOR_MAP: Record<string, {highlight: string; accent: string; glow:
   '#ffaa00': {highlight: '#ffd1b3', accent: '#fff0e6', glow: 'rgba(255, 176, 136, 0.7)'},
 };
 
-// Sub-Phases: Classic Spectris Grid, Spectris Breakout Bonus Level, and 5th-Round Slot Machine
+// Sub-Phases: Classic Spectris Grid, boss Breakout battles, and the post-boss slot machine
 type AstralPhase = 'GRID' | 'BREAKOUT' | 'SLOT_MACHINE';
 
 interface FloatingText {
@@ -232,6 +232,15 @@ interface BreakoutOrb {
   vy: number;
   radius: number;
   trail: {x: number; y: number; alpha: number}[];
+}
+
+interface BreakoutEnemyShot {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  kind: 'bomb' | 'fragment';
 }
 
 // Quest definition
@@ -299,9 +308,16 @@ export default function App() {
     god_mode_bg: 'images/god_mode_bg.png',
     crane_claw: 'images/crane_gantry_claw.png',
     breakout_orb: 'images/breakout_orb_projectile.png',
+    scrap_drone_enemy: 'images/scrap_drone_enemy.png',
     skill_bomb_icon: 'images/skill_bomb_icon.png',
     skill_laser_icon: 'images/skill_laser_icon.png',
     skill_freeze_icon: 'images/skill_freeze_icon.png',
+    ...Object.fromEntries(
+      Array.from({length: 16}, (_, index) => {
+        const bossNumber = index + 1;
+        return [`boss_${bossNumber}`, `images/images/boss/${bossNumber}_boss.png`];
+      }),
+    ),
   };
 
   const {assets, isReady: assetsReady} = useAssets(ASSETS_MANIFEST);
@@ -475,6 +491,7 @@ export default function App() {
   // Breakout Phase State
   const breakoutBlocksRef = useRef<BreakoutBlock[]>([]);
   const breakoutOrbsRef = useRef<BreakoutOrb[]>([]);
+  const breakoutEnemyShotsRef = useRef<BreakoutEnemyShot[]>([]);
   const breakoutPaddleRef = useRef<{x: number; y: number; w: number; h: number}>({
     x: canvasWidth / 2 - 90,
     y: canvasHeight - 80,
@@ -482,6 +499,15 @@ export default function App() {
     h: 22,
   });
   const breakoutShotsRemainingRef = useRef<number>(6);
+  const breakoutBossHealthRef = useRef<number>(0);
+  const breakoutBossMaxHealthRef = useRef<number>(0);
+  const breakoutPlayerHealthRef = useRef<number>(100);
+  const breakoutBossShotTimerRef = useRef<number>(0);
+  const breakoutNpcShotTimerRef = useRef<number>(0);
+  const breakoutNpcShotIndexRef = useRef<number>(0);
+  const breakoutDamageCooldownRef = useRef<number>(0);
+  const breakoutBossTierRef = useRef<number>(1);
+  const breakoutNpcCountRef = useRef<number>(1);
   const hasFiredFirstOrbRef = useRef<boolean>(false);
   const breakoutLaunchPromptAlphaRef = useRef<number>(1);
 
@@ -776,50 +802,32 @@ export default function App() {
 
   // --- Phase Setup Helpers ---
   const setupBreakoutPhase = () => {
-    const blocks: BreakoutBlock[] = [];
-    const bCols = 10;
-    const bRows = 5;
-    const blockW = (canvasWidth - 420) / bCols;
-    const blockH = 30;
-    const startX = 210;
-    const startY = 120;
-
-    const colors = ['#7bf1e8', '#ff8fa3', '#fff07c', '#d18aff', '#7efcb0', '#8ea8ff', '#ffb088'];
-
-    for (let r = 0; r < bRows; r++) {
-      for (let c = 0; c < bCols; c++) {
-        if (Math.random() > 0.12) {
-          const colIndex = r % colors.length;
-          blocks.push({
-            row: r,
-            col: c,
-            x: startX + c * blockW + 4,
-            y: startY + r * blockH + 4,
-            w: blockW - 8,
-            h: blockH - 8,
-            color: colors[colIndex],
-            glow: colors[colIndex],
-            hp: 1,
-          });
-        }
-      }
-    }
-
-    breakoutBlocksRef.current = blocks;
+    const bossTier = Math.max(1, Math.floor(gameStateRef.current.level / 10));
+    breakoutBossTierRef.current = bossTier;
+    breakoutNpcCountRef.current = Math.min(5, bossTier);
+    breakoutBossMaxHealthRef.current = 8 + (bossTier - 1) * 4;
+    breakoutBossHealthRef.current = breakoutBossMaxHealthRef.current;
+    breakoutPlayerHealthRef.current = 100;
+    breakoutBossShotTimerRef.current = 1.2;
+    breakoutNpcShotTimerRef.current = 2.4;
+    breakoutNpcShotIndexRef.current = 0;
+    breakoutDamageCooldownRef.current = 0;
+    breakoutBlocksRef.current = [];
     breakoutOrbsRef.current = [];
+    breakoutEnemyShotsRef.current = [];
     breakoutPaddleRef.current = {
       x: canvasWidth / 2 - 90,
       y: canvasHeight - 75,
       w: 180,
       h: 22,
     };
-    breakoutShotsRemainingRef.current = 6;
+    breakoutShotsRemainingRef.current = -1;
     hasFiredFirstOrbRef.current = false;
     breakoutLaunchPromptAlphaRef.current = 1.0;
   };
 
   const launchBreakoutOrb = (targetX: number, targetY: number) => {
-    if (breakoutShotsRemainingRef.current <= 0) return;
+    if (breakoutShotsRemainingRef.current === 0) return;
     const p = breakoutPaddleRef.current;
     const startX = p.x + p.w / 2;
     const startY = p.y - 14;
@@ -838,7 +846,7 @@ export default function App() {
       trail: [],
     });
 
-    breakoutShotsRemainingRef.current -= 1;
+    if (breakoutShotsRemainingRef.current > 0) breakoutShotsRemainingRef.current -= 1;
     hasFiredFirstOrbRef.current = true;
     breakoutLaunchPromptAlphaRef.current = 0;
     gameAudio.playArcadeLaser();
@@ -942,6 +950,8 @@ export default function App() {
 
   const startNextPhase = (newPhase: AstralPhase, customLevel?: number) => {
     const nextLevel = customLevel !== undefined ? customLevel : gameStateRef.current.level;
+    touchLeftRef.current = false;
+    touchRightRef.current = false;
     setGameState((prev) => ({...prev, phase: newPhase, level: nextLevel}));
     gameStateRef.current = {...gameStateRef.current, phase: newPhase, level: nextLevel};
 
@@ -954,7 +964,7 @@ export default function App() {
     } else if (newPhase === 'BREAKOUT') {
       setCurrentBgmUrl('audio/bgm_bonus_rush.mp3');
       setupBreakoutPhase();
-      announcePhase('🔮 MILESTONE: SPECTRIS BREAKOUT 🔮');
+      announcePhase(`⚔️ BOSS ${Math.floor(nextLevel / 10)}: BREAKOUT BATTLE ⚔️`);
       gameAudio.playConfirmSelect();
     } else if (newPhase === 'SLOT_MACHINE') {
       setCurrentBgmUrl('audio/bgm_god_mode.mp3');
@@ -1300,10 +1310,10 @@ export default function App() {
         clearedCount === 4 || isWild ? 30 : 24
       );
 
-      // Check Round Completion -> Breakout every 5 rounds (Round 5, 10, 15...), otherwise advance Realm
+      // Every tenth round ends in a boss Breakout battle; all other rounds advance normally.
       if (linesInRoundRef.current >= roundLinesTargetRef.current) {
         grantBonusSpinProgress(0.4, 'ROUND CLEAR');
-        if (gameStateRef.current.level % 5 === 0) {
+        if (gameStateRef.current.level % 10 === 0) {
           startNextPhase('BREAKOUT');
           return;
         } else {
@@ -1680,7 +1690,10 @@ export default function App() {
       }
     } else if (phase === 'BREAKOUT') {
       const p = breakoutPaddleRef.current;
-      const paddleSpeed = 540;
+      const paddleSpeed = 640;
+      if (breakoutDamageCooldownRef.current > 0) {
+        breakoutDamageCooldownRef.current = Math.max(0, breakoutDamageCooldownRef.current - dt);
+      }
       if (leftDown) p.x = Math.max(80, p.x - paddleSpeed * dt);
       if (rightDown) p.x = Math.min(canvasWidth - p.w - 80, p.x + paddleSpeed * dt);
 
@@ -1692,6 +1705,50 @@ export default function App() {
       // Pointer tap to launch orb
       if (input.pointer.down && input.actions.tap) {
         launchBreakoutOrb(input.pointer.x, input.pointer.y);
+      }
+
+      const bossTier = breakoutBossTierRef.current;
+      const npcCount = breakoutNpcCountRef.current;
+      breakoutBossShotTimerRef.current -= dt;
+      if (breakoutBossShotTimerRef.current <= 0) {
+        const targetX = p.x + p.w / 2 + (Math.random() - 0.5) * 300;
+        const sourceX = canvasWidth / 2;
+        const sourceY = 205;
+        const dx = targetX - sourceX;
+        const dy = p.y - sourceY;
+        const distance = Math.hypot(dx, dy) || 1;
+        const shotSpeed = 190 + bossTier * 12;
+        breakoutEnemyShotsRef.current.push({
+          x: sourceX,
+          y: sourceY,
+          vx: (dx / distance) * shotSpeed,
+          vy: (dy / distance) * shotSpeed,
+          radius: 15,
+          kind: 'bomb',
+        });
+        breakoutBossShotTimerRef.current = Math.max(0.85, 2.6 - bossTier * 0.14);
+      }
+
+      breakoutNpcShotTimerRef.current -= dt;
+      if (breakoutNpcShotTimerRef.current <= 0 && npcCount > 0) {
+        const npcIndex = breakoutNpcShotIndexRef.current % npcCount;
+        const sourceX = canvasWidth * ((npcIndex + 1) / (npcCount + 1));
+        const sourceY = 275;
+        const targetX = p.x + p.w / 2 + (Math.random() - 0.5) * 360;
+        const dx = targetX - sourceX;
+        const dy = p.y - sourceY;
+        const distance = Math.hypot(dx, dy) || 1;
+        const shotSpeed = 220 + bossTier * 10;
+        breakoutEnemyShotsRef.current.push({
+          x: sourceX,
+          y: sourceY,
+          vx: (dx / distance) * shotSpeed,
+          vy: (dy / distance) * shotSpeed,
+          radius: 11,
+          kind: 'bomb',
+        });
+        breakoutNpcShotIndexRef.current += 1;
+        breakoutNpcShotTimerRef.current = Math.max(1.1, 3.2 - bossTier * 0.18);
       }
 
       // Update Orbs
@@ -1717,6 +1774,26 @@ export default function App() {
           orb.y = 50 + orb.radius;
           orb.vy = Math.abs(orb.vy);
           gameAudio.playShieldBlock();
+        }
+
+        const bossX = canvasWidth / 2 - 150;
+        const bossY = 75;
+        const bossW = 300;
+        const bossH = 150;
+        if (
+          orb.x + orb.radius > bossX &&
+          orb.x - orb.radius < bossX + bossW &&
+          orb.y + orb.radius > bossY &&
+          orb.y - orb.radius < bossY + bossH
+        ) {
+          breakoutBossHealthRef.current = Math.max(0, breakoutBossHealthRef.current - 1);
+          orb.y = bossY + bossH + orb.radius;
+          orb.vy = Math.abs(orb.vy);
+          gameAudio.playChiptuneExplosion();
+          spawnParticles(orb.x, orb.y - orb.radius, '#ff8fa3', 12, 'shard');
+          const pts = 600 * gameStateRef.current.level;
+          setGameState((prev) => ({...prev, score: prev.score + pts}));
+          addFloatingText(`BOSS HIT +${pts}`, orb.x, orb.y, '#ff8fa3', 20);
         }
 
         // Paddle Collision
@@ -1757,21 +1834,76 @@ export default function App() {
         });
       });
 
-      // Remove Dead Blocks & Out-of-bounds Orbs
+      // Boss bombs split near the paddle; fragments that hit the paddle cost player HP.
+      const remainingEnemyShots: BreakoutEnemyShot[] = [];
+      breakoutEnemyShotsRef.current.forEach((shot) => {
+        shot.x += shot.vx * dt;
+        shot.y += shot.vy * dt;
+        const splitY = p.y - 90;
+        if (shot.y + shot.radius < (shot.kind === 'bomb' ? splitY : p.y)) {
+          remainingEnemyShots.push(shot);
+          return;
+        }
+
+        const hitPaddle =
+          shot.y + shot.radius >= p.y &&
+          shot.x + shot.radius >= p.x &&
+          shot.x - shot.radius <= p.x + p.w &&
+          shot.y - shot.radius <= p.y + p.h;
+        if (hitPaddle && breakoutDamageCooldownRef.current <= 0) {
+          const damage = shot.kind === 'bomb' ? 16 : 8;
+          breakoutPlayerHealthRef.current = Math.max(0, breakoutPlayerHealthRef.current - damage);
+          breakoutDamageCooldownRef.current = 0.65;
+          gameAudio.playShieldBlock();
+          spawnParticles(shot.x, p.y, '#ff4d7d', 18, 'shard');
+          addFloatingText(`-${damage} HP`, p.x + p.w / 2, p.y - 12, '#ff4d7d', 20);
+          if (breakoutPlayerHealthRef.current <= 0 && gameStateRef.current.status !== 'GAME_OVER') {
+            gameStateRef.current = {...gameStateRef.current, status: 'GAME_OVER'};
+            setGameState((prev) => ({...prev, status: 'GAME_OVER'}));
+            gameAudio.playDefeatMotif();
+          }
+        } else if (shot.kind === 'bomb' && breakoutDamageCooldownRef.current <= 0) {
+          const distanceX = Math.max(p.x - shot.x, 0, shot.x - (p.x + p.w));
+          const distanceY = Math.max(0, p.y - shot.y);
+          if (Math.hypot(distanceX, distanceY) <= 100) {
+            const damage = 12;
+            breakoutPlayerHealthRef.current = Math.max(0, breakoutPlayerHealthRef.current - damage);
+            breakoutDamageCooldownRef.current = 0.65;
+            gameAudio.playShieldBlock();
+            spawnParticles(shot.x, shot.y, '#ff9f43', 22, 'shard');
+            addFloatingText(`-${damage} BLAST`, p.x + p.w / 2, p.y - 12, '#ff9f43', 20);
+            if (breakoutPlayerHealthRef.current <= 0 && gameStateRef.current.status !== 'GAME_OVER') {
+              gameStateRef.current = {...gameStateRef.current, status: 'GAME_OVER'};
+              setGameState((prev) => ({...prev, status: 'GAME_OVER'}));
+              gameAudio.playDefeatMotif();
+            }
+          }
+        }
+        if (shot.kind === 'bomb' && shot.y < canvasHeight - 20) {
+          for (let fragment = -1; fragment <= 1; fragment += 1) {
+            remainingEnemyShots.push({
+              x: shot.x,
+              y: shot.y,
+              vx: fragment * 145,
+              vy: 300 + bossTier * 10,
+              radius: 8,
+              kind: 'fragment',
+            });
+          }
+          spawnParticles(shot.x, shot.y, '#ff9f43', 14, 'shard');
+        }
+      });
+      breakoutEnemyShotsRef.current = remainingEnemyShots;
+
+      // Remove cleared blocks & out-of-bounds orbs.
       breakoutBlocksRef.current = breakoutBlocksRef.current.filter((b) => b.hp > 0);
       breakoutOrbsRef.current = breakoutOrbsRef.current.filter((o) => o.y < canvasHeight + 50);
 
-      // Check Completion of Breakout Phase -> Proceed to 5th Round Slot Machine
-      const allCleared = breakoutBlocksRef.current.length === 0;
-      const noShotsLeft = breakoutShotsRemainingRef.current <= 0 && breakoutOrbsRef.current.length === 0;
-
-      if (allCleared || noShotsLeft) {
-        if (allCleared) {
-          // Breakout clear bonus (scaled down by 60% -> +1 bonus spin)
-          bonusSpinsBankRef.current += 1;
-          setBonusSpins(bonusSpinsBankRef.current);
-          addFloatingText('★ BREAKOUT CLEARED! +1 BONUS SPIN ★', canvasWidth / 2, canvasHeight / 2 - 40, '#ffd700', 26);
-        }
+      if (breakoutBossHealthRef.current <= 0 && gameStateRef.current.status === 'PLAYING') {
+        bonusSpinsBankRef.current += 1;
+        setBonusSpins(bonusSpinsBankRef.current);
+        addFloatingText('★ BOSS DEFEATED! +1 BONUS SPIN ★', canvasWidth / 2, canvasHeight / 2 - 40, '#ffd700', 26);
+        gameAudio.playVictoryFanfare();
         startNextPhase('SLOT_MACHINE');
       }
     } else if (phase === 'SLOT_MACHINE') {
@@ -2286,7 +2418,7 @@ export default function App() {
 
       // Goal Gauge at bottom of Quest Panel
       const linesLeft = Math.max(0, roundLinesTargetRef.current - linesInRoundRef.current);
-      const isMilestoneRound = currentLevel % 5 === 0;
+      const isMilestoneRound = currentLevel % 10 === 0;
       ctx.fillStyle = isMilestoneRound ? 'rgba(255, 0, 127, 0.18)' : 'rgba(0, 243, 255, 0.12)';
       ctx.fillRect(questBoxX + 10, questBoxH + startY - 95, questBoxW - 20, 85);
       ctx.strokeStyle = isMilestoneRound ? '#ff007f' : '#00f3ff';
@@ -2294,7 +2426,7 @@ export default function App() {
 
       ctx.fillStyle = isMilestoneRound ? '#ff007f' : '#00f3ff';
       ctx.font = 'bold 11px Orbitron, sans-serif';
-      ctx.fillText(isMilestoneRound ? '🔮 BREAKOUT MILESTONE' : `⚡ REALM ${currentLevel} GOAL`, questBoxX + 18, questBoxH + startY - 75);
+      ctx.fillText(isMilestoneRound ? '⚔️ BOSS BATTLE' : `⚡ REALM ${currentLevel} GOAL`, questBoxX + 18, questBoxH + startY - 75);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 22px Orbitron, sans-serif';
@@ -2302,7 +2434,7 @@ export default function App() {
 
       ctx.fillStyle = '#aaa';
       ctx.font = '10px Orbitron, sans-serif';
-      ctx.fillText(isMilestoneRound ? 'Lines to Breakout & Slots!' : 'Lines to Next Realm', questBoxX + 50, questBoxH + startY - 48);
+      ctx.fillText(isMilestoneRound ? 'Lines to Boss & Slots!' : 'Lines to Next Realm', questBoxX + 50, questBoxH + startY - 48);
 
       // Skill Energy Gauge
       ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
@@ -2356,8 +2488,8 @@ export default function App() {
         }
       }
 
-      // Breakout & Slot Milestone Countdown Box
-      const roundsUntilMilestone = 5 - (currentLevel % 5 === 0 ? 5 : currentLevel % 5);
+      // Boss & Slot Milestone Countdown Box
+      const roundsUntilMilestone = 10 - (currentLevel % 10 === 0 ? 10 : currentLevel % 10);
       ctx.fillStyle = 'rgba(12, 18, 40, 0.88)';
       ctx.fillRect(sideBoxX, startY + 155, sideBoxW, 120);
       ctx.strokeStyle = roundsUntilMilestone === 0 ? 'rgba(255, 0, 127, 0.7)' : 'rgba(255, 215, 0, 0.4)';
@@ -2365,7 +2497,7 @@ export default function App() {
 
       ctx.fillStyle = roundsUntilMilestone === 0 ? '#ff007f' : '#ffd700';
       ctx.font = 'bold 10px Orbitron, sans-serif';
-      ctx.fillText('🔮 BREAKOUT & SLOTS', sideBoxX + 10, startY + 178);
+      ctx.fillText('⚔️ BOSS & SLOTS', sideBoxX + 10, startY + 178);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 20px Orbitron, sans-serif';
@@ -2401,10 +2533,51 @@ export default function App() {
     }
 
     // ==========================================
-    // PHASE 2: SPECTRIS BREAKOUT BONUS LEVEL
+    // PHASE 2: BOSS BREAKOUT BATTLE
     // ==========================================
     if (currentPhase === 'BREAKOUT') {
-      // Draw Breakout Blocks
+      const bossTier = breakoutBossTierRef.current;
+      const bossAssetKey = `boss_${((gameStateRef.current.level - 1) % 16) + 1}`;
+      const bossX = canvasWidth / 2 - 150;
+      const bossY = 75;
+      const bossW = 300;
+      const bossH = 150;
+
+      // Draw the boss and its drone escorts.
+      drawAsset(ctx, assets[bossAssetKey], bossX, bossY, bossW, bossH, (fallbackCtx) => {
+        fallbackCtx.fillStyle = '#831843';
+        fallbackCtx.fillRect(bossX, bossY, bossW, bossH);
+        fallbackCtx.strokeStyle = '#ff4d7d';
+        fallbackCtx.lineWidth = 4;
+        fallbackCtx.strokeRect(bossX, bossY, bossW, bossH);
+      });
+      for (let index = 0; index < breakoutNpcCountRef.current; index += 1) {
+        const npcX = canvasWidth * ((index + 1) / (breakoutNpcCountRef.current + 1));
+        drawAsset(ctx, assets['scrap_drone_enemy'], npcX - 30, 245, 60, 60, (fallbackCtx) => {
+          fallbackCtx.fillStyle = '#ff4d7d';
+          fallbackCtx.beginPath();
+          fallbackCtx.arc(npcX, 275, 22, 0, Math.PI * 2);
+          fallbackCtx.fill();
+        });
+      }
+
+      // The boss health meter makes the win condition explicit.
+      const healthBarX = canvasWidth / 2 - 180;
+      const healthBarY = 48;
+      const healthBarWidth = 360;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.fillRect(healthBarX, healthBarY, healthBarWidth, 16);
+      ctx.fillStyle = '#ff4d7d';
+      ctx.fillRect(
+        healthBarX,
+        healthBarY,
+        healthBarWidth * (breakoutBossHealthRef.current / breakoutBossMaxHealthRef.current),
+        16,
+      );
+      ctx.strokeStyle = '#ffd1dc';
+      ctx.strokeRect(healthBarX, healthBarY, healthBarWidth, 16);
+
+      // Draw any remaining shield blocks (kept for future boss patterns).
       breakoutBlocksRef.current.forEach((blk) => {
         ctx.fillStyle = blk.color;
         ctx.shadowColor = blk.glow;
@@ -2425,6 +2598,26 @@ export default function App() {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(p.x + 4, p.y + 4, p.w - 8, 4);
       ctx.shadowBlur = 0;
+
+      // Paddle integrity.
+      const healthBarW = 190;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.fillRect(60, canvasHeight - 52, healthBarW, 14);
+      ctx.fillStyle = breakoutPlayerHealthRef.current > 35 ? '#00ff88' : '#ff4d7d';
+      ctx.fillRect(60, canvasHeight - 52, healthBarW * (breakoutPlayerHealthRef.current / 100), 14);
+      ctx.strokeStyle = '#ffffff';
+      ctx.strokeRect(60, canvasHeight - 52, healthBarW, 14);
+
+      // Draw incoming boss bombs and their split fragments.
+      breakoutEnemyShotsRef.current.forEach((shot) => {
+        ctx.fillStyle = shot.kind === 'bomb' ? '#ff9f43' : '#ff4d7d';
+        ctx.shadowColor = shot.kind === 'bomb' ? '#ff9f43' : '#ff4d7d';
+        ctx.shadowBlur = shot.kind === 'bomb' ? 15 : 8;
+        ctx.beginPath();
+        ctx.arc(shot.x, shot.y, shot.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
 
       // Draw Orbs & Trails
       breakoutOrbsRef.current.forEach((orb) => {
@@ -2468,8 +2661,13 @@ export default function App() {
       // HUD Header
       ctx.fillStyle = '#ffd700';
       ctx.font = 'bold 18px Orbitron, sans-serif';
-      ctx.fillText(`Orbs Remaining: ${breakoutShotsRemainingRef.current}`, 60, 90);
-      ctx.fillText(`Blocks Left: ${breakoutBlocksRef.current.length}`, canvasWidth - 220, 90);
+      ctx.fillText(`BOSS ${bossTier} HP: ${breakoutBossHealthRef.current}`, 60, 90);
+      ctx.fillText(`PADDLE HP: ${breakoutPlayerHealthRef.current}`, canvasWidth - 220, 90);
+      ctx.fillStyle = '#ff9f43';
+      ctx.font = 'bold 13px Orbitron, sans-serif';
+      ctx.fillText(`DRONES: ${breakoutNpcCountRef.current}`, canvasWidth - 220, 112);
+      ctx.fillStyle = '#00f3ff';
+      ctx.fillText('ORB CHARGES: ∞', 60, 112);
 
       // CLICK TO FIRE PROMPT
       if (!hasFiredFirstOrbRef.current && breakoutOrbsRef.current.length === 0) {
@@ -2499,7 +2697,7 @@ export default function App() {
     }
 
     // ==========================================
-    // PHASE 3: 5TH ROUND SLOT MACHINE BONUS
+    // PHASE 3: POST-BOSS SLOT MACHINE REWARD
     // ==========================================
     if (currentPhase === 'SLOT_MACHINE') {
       const centerX = canvasWidth / 2;
@@ -2523,7 +2721,7 @@ export default function App() {
 
       ctx.fillStyle = '#00f3ff';
       ctx.font = '14px Orbitron, sans-serif';
-      ctx.fillText('EVERY 5 ROUNDS BONUS STAGE', centerX, centerY - 145);
+      ctx.fillText('BOSS DEFEATED — CLAIM YOUR REWARD', centerX, centerY - 145);
 
       // 3 Reels Windows
       const reelWidth = 180;
@@ -2715,7 +2913,7 @@ export default function App() {
               {gameState.phase === 'SLOT_MACHINE'
                 ? '🎰 ASTRAL SLOTS'
                 : gameState.phase === 'BREAKOUT'
-                ? '🔮 SPECTRIS BREAKOUT'
+                ? '⚔️ BOSS BATTLE'
                 : 'GRID'}
             </span>
           </div>
@@ -2800,11 +2998,22 @@ export default function App() {
           ) : gameState.phase === 'BREAKOUT' ? (
             <div className="flex items-center gap-3 w-full justify-around">
               <button
-                onPointerDown={() => {
+                onPointerDown={(event) => {
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  touchLeftRef.current = true;
                   const p = breakoutPaddleRef.current;
                   p.x = Math.max(80, p.x - 60);
                 }}
-                className="bg-slate-800 active:bg-cyan-600 text-cyan-300 px-6 py-3 rounded-lg font-bold border border-cyan-500/40 min-w-[54px] min-h-[48px]"
+                onPointerUp={() => {
+                  touchLeftRef.current = false;
+                }}
+                onPointerCancel={() => {
+                  touchLeftRef.current = false;
+                }}
+                onLostPointerCapture={() => {
+                  touchLeftRef.current = false;
+                }}
+                className="bg-slate-800 active:bg-cyan-600 text-cyan-300 px-6 py-3 rounded-lg font-bold border border-cyan-500/40 min-w-[54px] min-h-[48px] touch-none select-none"
               >
                 ◀ PADDLE LEFT
               </button>
@@ -2820,11 +3029,22 @@ export default function App() {
               </button>
 
               <button
-                onPointerDown={() => {
+                onPointerDown={(event) => {
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  touchRightRef.current = true;
                   const p = breakoutPaddleRef.current;
                   p.x = Math.min(canvasWidth - p.w - 80, p.x + 60);
                 }}
-                className="bg-slate-800 active:bg-cyan-600 text-cyan-300 px-6 py-3 rounded-lg font-bold border border-cyan-500/40 min-w-[54px] min-h-[48px]"
+                onPointerUp={() => {
+                  touchRightRef.current = false;
+                }}
+                onPointerCancel={() => {
+                  touchRightRef.current = false;
+                }}
+                onLostPointerCapture={() => {
+                  touchRightRef.current = false;
+                }}
+                className="bg-slate-800 active:bg-cyan-600 text-cyan-300 px-6 py-3 rounded-lg font-bold border border-cyan-500/40 min-w-[54px] min-h-[48px] touch-none select-none"
               >
                 PADDLE RIGHT ▶
               </button>
@@ -2889,21 +3109,20 @@ export default function App() {
 
                 <button
                   onPointerDown={(e) => {
-                    try {
-                      e.currentTarget.setPointerCapture?.(e.pointerId);
-                    } catch (_) {}
+                    e.currentTarget.setPointerCapture(e.pointerId);
                     touchLeftRef.current = true;
+                    movePiece(-1);
+                    activeMoveDirRef.current = -1;
+                    dasTimerRef.current = (getConfig('dasDelay') as number) || 0.17;
+                    arrTimerRef.current = 0;
                   }}
-                  onPointerUp={(e) => {
-                    try {
-                      e.currentTarget.releasePointerCapture?.(e.pointerId);
-                    } catch (_) {}
+                  onPointerUp={() => {
                     touchLeftRef.current = false;
                   }}
                   onPointerCancel={() => {
                     touchLeftRef.current = false;
                   }}
-                  onPointerLeave={() => {
+                  onLostPointerCapture={() => {
                     touchLeftRef.current = false;
                   }}
                   className="bg-slate-800 active:bg-cyan-600 text-cyan-300 px-3 py-2 rounded-lg font-bold border border-cyan-500/40 min-w-[44px] min-h-[44px] touch-none select-none text-xs"
@@ -2920,21 +3139,20 @@ export default function App() {
 
                 <button
                   onPointerDown={(e) => {
-                    try {
-                      e.currentTarget.setPointerCapture?.(e.pointerId);
-                    } catch (_) {}
+                    e.currentTarget.setPointerCapture(e.pointerId);
                     touchRightRef.current = true;
+                    movePiece(1);
+                    activeMoveDirRef.current = 1;
+                    dasTimerRef.current = (getConfig('dasDelay') as number) || 0.17;
+                    arrTimerRef.current = 0;
                   }}
-                  onPointerUp={(e) => {
-                    try {
-                      e.currentTarget.releasePointerCapture?.(e.pointerId);
-                    } catch (_) {}
+                  onPointerUp={() => {
                     touchRightRef.current = false;
                   }}
                   onPointerCancel={() => {
                     touchRightRef.current = false;
                   }}
-                  onPointerLeave={() => {
+                  onLostPointerCapture={() => {
                     touchRightRef.current = false;
                   }}
                   className="bg-slate-800 active:bg-cyan-600 text-cyan-300 px-3 py-2 rounded-lg font-bold border border-cyan-500/40 min-w-[44px] min-h-[44px] touch-none select-none text-xs"
@@ -2944,21 +3162,16 @@ export default function App() {
 
                 <button
                   onPointerDown={(e) => {
-                    try {
-                      e.currentTarget.setPointerCapture?.(e.pointerId);
-                    } catch (_) {}
+                    e.currentTarget.setPointerCapture(e.pointerId);
                     touchDownRef.current = true;
                   }}
-                  onPointerUp={(e) => {
-                    try {
-                      e.currentTarget.releasePointerCapture?.(e.pointerId);
-                    } catch (_) {}
+                  onPointerUp={() => {
                     touchDownRef.current = false;
                   }}
                   onPointerCancel={() => {
                     touchDownRef.current = false;
                   }}
-                  onPointerLeave={() => {
+                  onLostPointerCapture={() => {
                     touchDownRef.current = false;
                   }}
                   aria-label="Soft drop"
@@ -3009,7 +3222,7 @@ export default function App() {
               </div>
               <div><b>Hold and swap:</b> Save a piece for a later turn.</div>
               <div><b>Wild pieces:</b> Fill gaps across rows when they land.</div>
-              <div><b>Bonus stages:</b> Breakout and slots unlock every five rounds.</div>
+              <div><b>Boss rounds:</b> Every 10th round ends in a Breakout boss fight; slots unlock only after defeating the boss.</div>
             </div>
 
             <button
@@ -3138,16 +3351,16 @@ export default function App() {
               </div>
 
               <div className="border-b border-cyan-500/20 pb-2">
-                <span className="font-bold text-pink-300">4. Spectris Breakout Bonus Stage (Every 5 Rounds):</span>
+                <span className="font-bold text-pink-300">4. Boss Breakout Battle (Every 10 Rounds):</span>
                 <p className="mt-1">
-                  Every 5 rounds (Round 5, 10, 15...), clear the required lines to activate the Breakout Bonus Stage! Click/Tap or press Space to fire glowing orbs and shatter floating crystal blocks for huge point multipliers.
+                  Every 10 rounds, clear the required lines to enter a boss fight. Fire orbs with click/tap or Space to damage the boss, dodge the boss's area-blast bombs and drone fire, and defeat the boss to unlock the slot machine. Bombs burst into three fragments; holding the paddle controls keeps it moving.
                 </p>
               </div>
 
               <div className="border-b border-cyan-500/20 pb-2">
-                <span className="font-bold text-emerald-300">5. Celestial Slot Machine (Every 5 Rounds):</span>
+                <span className="font-bold text-emerald-300">5. Celestial Slot Machine (After Boss Battles):</span>
                 <p className="mt-1">
-                  Immediately following the Breakout milestone stage, spin the 3-Reel Astral Slot Machine! Payout combos award massive bonus score:
+                  Defeat the boss to unlock the 3-Reel Astral Slot Machine! Later boss rounds increase boss health and attack speed and add more drone escorts. Payout combos award bonus score:
                   3x 777 (5,000x Level), 3x Crowns (3,000x Level), 3x Stars (2,000x Level), and Double Matches.
                 </p>
               </div>

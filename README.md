@@ -5,7 +5,7 @@ Spectris is a free, browser-based cosmic arcade puzzle game from [Spectral Garde
 ## Features
 
 - A classic falling-block puzzle grid with progressively challenging rounds
-- Breakout bonus stages every five rounds
+- A Breakout boss battle every 10 rounds, followed by the slot machine only after victory
 - Special skills, score multipliers, and changing cosmic backgrounds
 - Keyboard and touch-friendly on-screen controls
 
@@ -15,7 +15,7 @@ Spectris is a free, browser-based cosmic arcade puzzle game from [Spectral Garde
 - **Up Arrow / Rotate button:** Rotate the piece
 - **Down Arrow:** Soft drop
 - **Space / Drop button:** Hard drop
-- **Breakout bonus stage:** Click or tap, or press Space, to fire
+- **Boss battle:** Click or tap, or press Space, to fire at the boss; hold the left/right paddle controls to move continuously and dodge attacks
 
 ## Run locally
 
