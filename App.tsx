@@ -339,7 +339,7 @@ export default function App() {
 
   const [isGameMenuOpen, setIsGameMenuOpen] = useState(false);
   const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
-  const [isMusicMuted, setIsMusicMuted] = useState(false);
+  const [isMusicMuted, setIsMusicMuted] = useState(true);
   const [isSfxMuted, setIsSfxMuted] = useState(false);
   const [leaderboardName, setLeaderboardName] = useState('ANONYMOUS');
   const [leaderboardScores, setLeaderboardScores] = useState<Array<{ name: string; score: number }>>([]);
